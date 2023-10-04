@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Latency Graph</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+</head>
+
+<body>
+    <div id="themeSwitcherContainer">
+        <label class="switch">
+            <input type="checkbox" id="themeSwitcher">
+            <span class="slider"></span>
+        </label>
+        Dark Mode
+    </div>
+    <div id="main"></div>
+    <!-- <div id="latestPing" style="text-align: center; margin-top: 20px;"></div> -->
+    <div id="latestPing"></div>
+    <h3 id="errorMessagesTitle">Error Messages:</h3>
+    <div id="errors"></div>
+    <script>
+        const chart = echarts.init(document.getElementById('main'));
+
+        const option = {
+            title: {
+                text: 'Latency over time',
+                bottom: 10, // Positions the title to the bottom
+                left: 'center', // Centers the title
+                textStyle: {
+                // Optional: Adjust text style as needed
+                    color: '#333',
+                    fontSize: 14,
+                    fontFamily: 'Arial' // specify the font family here
+                }
+            },
+            tooltip: {
+                trigger: 'axis',
+                formatter: function (params) {
+                    let tooltipText = `Time: ${params[0].axisValue}<br/>`;
+                    for (let param of params) {
+                        if (param.seriesName === 'Latency' && param.data !== null) {
+                            tooltipText += `Latency: ${param.data} ms<br/>`;
+                        } else if (param.seriesName === 'Disconnection' && param.data !== null) {
+                            tooltipText += `Disconnection<br/>`;
+                        }
+                    }
+                    return tooltipText;
+                }
+            },
+
+            xAxis: {
+                type: 'category',
+                boundaryGap: false
+            },
+            yAxis: {
+                type: 'value',
+                boundaryGap: [0, '30%'],
+                axisLabel: {
+                    formatter: '{value} ms'
+                }
+            },
+            series: [{
+                name: 'Latency',
+                type: 'line',
+                smooth: true,
+                symbol: 'none',
+                sampling: 'average',
+                itemStyle: {
+                    color: '#5470c6'
+                },
+                data: []
+            },
+            {
+                name: 'Disconnection',
+                type: 'line',
+                smooth: true,
+                symbol: 'circle',
+                itemStyle: {
+                    color: 'red'
+                },
+                data: []
+            }],
+            dataZoom: [
+                {
+                    type: 'slider',
+                    show: true,
+                    xAxisIndex: [0],
+                    start: 0,    // default starting position 0% (beginning)
+                    end: 100     // default ending position 100% (end)
+                },
+                {
+                    type: 'inside',
+                    xAxisIndex: [0],
+                    start: 0,
+                    end: 100
+                }
+            ]
+        };
+
+        chart.setOption(option);
+
+        const ws = new WebSocket("ws://localhost:8081/ws");
+        const errorsDiv = document.getElementById('errors');
+
+        ws.onopen = function (event) {
+            console.log("WebSocket is open now.");
+        };
+
+        ws.onclose = function (event) {
+            console.log("WebSocket is closed now.");
+        };
+
+        ws.onerror = function (event) {
+            console.error("WebSocket encountered an error: ", event);
+        };
+
+        ws.onmessage = function (event) {
+            if (event.data.startsWith("Ping error")) {
+                const timestamp = new Date().toLocaleTimeString();
+                errorsDiv.innerHTML = timestamp + ": " + event.data + "<br>" + errorsDiv.innerHTML;
+
+                const messages = errorsDiv.innerHTML.split("<br>");
+                if (messages.length > 500) {
+                    messages.length = 500;
+                    errorsDiv.innerHTML = messages.join("<br>");
+                }
+                return;
+            }
+
+            let chartData = JSON.parse(event.data);
+            console.log(chartData);
+
+            const rawData = chartData.series[0].data.map(item => item.value);
+
+            const blueData = rawData.map(val => (val === 0 ? null : val));
+            const redData = rawData.map(val => (val === 0 ? 0 : null));
+
+            chart.setOption({
+                xAxis: {
+                    data: chartData.xAxis[0].data
+                },
+                series: [
+                    { data: blueData },
+                    { data: redData }
+                ]
+            });
+
+            chart.resize();
+
+            let latestPingValue = chartData.series[0].data[chartData.series[0].data.length - 1].value;
+            document.getElementById('latestPing').innerHTML = "Latest Ping: " + latestPingValue + " ms";
+        };
+        // Dark mode toggling
+    const themeSwitcher = document.getElementById('themeSwitcher');
+    themeSwitcher.addEventListener('change', () => {
+        if (themeSwitcher.checked) {
+            document.body.setAttribute('data-theme', 'dark');
+        } else {
+            document.body.removeAttribute('data-theme');
+        }
+    });
+    </script>
+</body>
+
+</html>
+

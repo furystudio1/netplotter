@@ -1,0 +1,117 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100vh;
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #fff;
+    color: #333;
+}
+
+#themeSwitcherContainer {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    align-items: center;
+}
+
+#main {
+    width: 100%;
+    height: 400px;
+}
+
+h3 {
+    text-align: center;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #333;
+}
+
+#errors {
+    width: 60%;
+    height: 150px;
+    overflow-y: scroll;
+    margin-top: 20px;
+    border: 1px solid #ccc;
+    background-color: #000000;
+    color: #ff0000;
+    border-width:2px;
+    /* border-style:dotted; */
+    border-color:#c0c0c0;
+    border-radius:10px;
+    -moz-border-radius:10px;
+    -webkit-border-radius:10px;
+}
+
+/* Toggle Switch Styles */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 30px;
+    margin-right: 10px;
+}
+
+#themeSwitcher {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #bbb;
+    transition: 0.4s;
+    border-radius: 34px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 26px;
+    width: 26px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+#themeSwitcher:checked + .slider {
+    background-color: #555;
+}
+
+#themeSwitcher:checked + .slider:before {
+    transform: translateX(28px);
+}
+
+body[data-theme="dark"] .slider {
+    background: linear-gradient(40deg, #ff6ec4, #7873f5);
+}
+
+/* Dark Mode Styles */
+[data-theme="dark"] {
+    background-color: #181818;
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] #main {
+    background-color: #232323;
+}
+
+[data-theme="dark"] h3 {
+    color: #e0e0e0;
+}
+
+[data-theme="dark"] #errors {
+    background-color: #000000;
+    color: #e0e0e0;
+    border-color: #555;
+}
