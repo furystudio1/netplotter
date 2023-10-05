@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/showwin/speedtest-go/speedtest"
 )
 
 const (
@@ -102,8 +103,28 @@ func handleWebSocketConnection(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func handleSpeedTest(w http.ResponseWriter, r *http.Request) {
+	var speedtestClient = speedtest.New()
+
+	serverList, _ := speedtestClient.FetchServers()
+	targets, _ := serverList.FindServer([]int{})
+
+	// For simplicity, we'll test only the first server
+	if len(targets) > 0 {
+		s := targets[0]
+		s.PingTest(nil)
+		s.DownloadTest()
+		s.UploadTest()
+		response := fmt.Sprintf("Latency: %s, Download: %f Mbps, Upload: %f Mbps\n", s.Latency, s.DLSpeed, s.ULSpeed)
+		w.Write([]byte(response))
+	} else {
+		w.Write([]byte("No speed test servers found."))
+	}
+}
+
 func main() {
 	http.HandleFunc("/ws", handleWebSocketConnection)
+	http.HandleFunc("/speedtest", handleSpeedTest)
 	http.Handle("/", http.FileServer(http.Dir("static")))
 
 	fmt.Println("Server started at http://localhost:8081")

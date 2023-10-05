@@ -26,6 +26,8 @@
         </div>
         <div id="errorMessage"></div>
     </div>
+    <button id="runSpeedTest">Speed Test</button>
+    <div id="speedTestResults"></div>
     <script>
         const chart = echarts.init(document.getElementById('main'));
 
@@ -162,6 +164,34 @@
             document.body.removeAttribute('data-theme');
         }
     });
+
+    window.onload = function() {
+        // Attach the event listener to the button
+        document.getElementById("runSpeedTest").addEventListener("click", function() {
+            let resultsDiv = document.getElementById("speedTestResults");
+
+            // Immediately show the message and make the div visible
+            resultsDiv.innerText = "Speed Test in progress...";
+            resultsDiv.style.display = "block";  // Show the div
+
+            // Fetch the speed test results
+            fetch("/speedtest").then(response => {
+                return response.text();
+            }).then(data => {
+                // Fetch current time and format it
+                let now = new Date();
+                let formattedTime = now.toLocaleDateString() + " " + now.toLocaleTimeString();
+
+                // Add the timestamp to the results and display
+                resultsDiv.innerText = `Test Time: ${formattedTime}\n\n${data}`;
+            }).catch(err => {
+                resultsDiv.innerText = "An error occurred while fetching the speedtest results.";
+            });
+        });
+    }
+
+    
+
     </script>
 </body>
 

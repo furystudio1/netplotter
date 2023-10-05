@@ -56,7 +56,12 @@ body {
 #errorTitle {
     text-align: center;
     font-weight: bolder;
+    font-size: 14px;
     margin-bottom: 10px;
+}
+
+#speedTestResults {
+    display: none;
 }
 
 /* Toggle Switch Styles */
