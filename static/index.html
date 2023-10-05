@@ -21,7 +21,7 @@
     <div id="main"></div>
     <div id="errors">
         <div id="errorTitle">
-            ################################# Recent Errors #################################
+            ## Recent Errors ##
         <br/>
         </div>
         <div id="errorMessage"></div>
@@ -30,11 +30,7 @@
         const chart = echarts.init(document.getElementById('main'));
 
         const option = {
-            title: {
-                text: 'Latency over time',
-                bottom: 10, // Positions the title to the bottom
-                left: 'center', // Centers the title
-            },
+            
             tooltip: {
                 trigger: 'axis',
                 formatter: function (params) {

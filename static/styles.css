@@ -63,8 +63,8 @@ body {
 .switch {
     position: relative;
     display: inline-block;
-    width: 60px;
-    height: 30px;
+    width: 50px;
+    height: 20px;
     margin-right: 10px;
 }
 
@@ -88,8 +88,8 @@ body {
 .slider:before {
     position: absolute;
     content: "";
-    height: 26px;
-    width: 26px;
+    height: 17px;
+    width: 17px;
     left: 2px;
     bottom: 2px;
     background-color: white;
@@ -117,6 +117,7 @@ body[data-theme="dark"] .slider {
 
 [data-theme="dark"] #main {
     background-color: #232323;
+    color: #e0e0e0;
 }
 
 [data-theme="dark"] h3 {
