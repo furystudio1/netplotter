@@ -55,10 +55,20 @@ func handleWebSocketConnection(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		time.Sleep(2 * time.Second)
-		output, err := exec.Command("ping", "-n", "1", "1.1.1.1").Output()
+		output, err := exec.Command("ping", "-n", "1", "1.1.1.1").CombinedOutput()
 
 		if err != nil {
-			conn.WriteMessage(websocket.TextMessage, []byte("Ping error: "+err.Error()))
+			// conn.WriteMessage(websocket.TextMessage, []byte("Ping error: "+err.Error()))
+			detailedError := fmt.Sprintf("ERROR: %s", string(output))
+			// fmt.Println(detailedError) // Print to server log
+
+			// Send the actual error to the frontend
+			errorData := map[string]string{
+				"errorType": "PingError",
+				"message":   detailedError,
+			}
+			jsonError, _ := json.Marshal(errorData)
+			conn.WriteMessage(websocket.TextMessage, jsonError)
 
 			// Add a 0ms latency data with red color to signify error.
 			latencies = append(latencies, map[string]interface{}{

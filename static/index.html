@@ -15,13 +15,17 @@
             <input type="checkbox" id="themeSwitcher">
             <span class="slider"></span>
         </label>
-        Dark Mode
+        Dark/Light Mode
     </div>
-    <div id="main"></div>
-    <!-- <div id="latestPing" style="text-align: center; margin-top: 20px;"></div> -->
     <div id="latestPing"></div>
-    <h3 id="errorMessagesTitle">Error Messages:</h3>
-    <div id="errors"></div>
+    <div id="main"></div>
+    <div id="errors">
+        <div id="errorTitle">
+            ################################# Recent Errors #################################
+        <br/>
+        </div>
+        <div id="errorMessage"></div>
+    </div>
     <script>
         const chart = echarts.init(document.getElementById('main'));
 
@@ -30,12 +34,6 @@
                 text: 'Latency over time',
                 bottom: 10, // Positions the title to the bottom
                 left: 'center', // Centers the title
-                textStyle: {
-                // Optional: Adjust text style as needed
-                    color: '#333',
-                    fontSize: 14,
-                    fontFamily: 'Arial' // specify the font family here
-                }
             },
             tooltip: {
                 trigger: 'axis',
@@ -104,7 +102,7 @@
         chart.setOption(option);
 
         const ws = new WebSocket("ws://localhost:8081/ws");
-        const errorsDiv = document.getElementById('errors');
+        const errorsDiv = document.getElementById('errorMessage');
 
         ws.onopen = function (event) {
             console.log("WebSocket is open now.");
@@ -119,29 +117,34 @@
         };
 
         ws.onmessage = function (event) {
-            if (event.data.startsWith("Ping error")) {
+
+            // console.log("Raw WebSocket data:", event.data);
+
+            let data = JSON.parse(event.data);
+
+            // If we have an error message:
+            if (data.errorType) {
                 const timestamp = new Date().toLocaleTimeString();
-                errorsDiv.innerHTML = timestamp + ": " + event.data + "<br>" + errorsDiv.innerHTML;
+                errorsDiv.innerHTML = `${timestamp}: ${data.message} <br>` + errorsDiv.innerHTML;
 
                 const messages = errorsDiv.innerHTML.split("<br>");
-                if (messages.length > 500) {
+                if (messages.length > 500) {  // Fix here: from message.length to messages.length
                     messages.length = 500;
                     errorsDiv.innerHTML = messages.join("<br>");
                 }
                 return;
             }
 
-            let chartData = JSON.parse(event.data);
-            console.log(chartData);
+            // console.log(data);  // Log the data to see what is incoming
 
-            const rawData = chartData.series[0].data.map(item => item.value);
+            const rawData = data.series[0].data.map(item => item.value);  // Use directly data here instead of chartData
 
             const blueData = rawData.map(val => (val === 0 ? null : val));
             const redData = rawData.map(val => (val === 0 ? 0 : null));
 
             chart.setOption({
                 xAxis: {
-                    data: chartData.xAxis[0].data
+                    data: data.xAxis[0].data
                 },
                 series: [
                     { data: blueData },
@@ -151,7 +154,7 @@
 
             chart.resize();
 
-            let latestPingValue = chartData.series[0].data[chartData.series[0].data.length - 1].value;
+            let latestPingValue = data.series[0].data[data.series[0].data.length - 1].value;
             document.getElementById('latestPing').innerHTML = "Latest Ping: " + latestPingValue + " ms";
         };
         // Dark mode toggling
@@ -167,4 +170,3 @@
 </body>
 
 </html>
-
